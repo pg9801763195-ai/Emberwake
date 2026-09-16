@@ -34,6 +34,11 @@ export function SiteNav() {
   const onCamp = pathname === "/camp";
   const signedIn = status === "authenticated" && !!session;
 
+  // On the landing page, the cinematic hero handles its own title & actions
+  if (pathname === "/" && !signedIn) {
+    return null;
+  }
+
   return (
     <header className="nav">
       <Link href="/" className="nav__wordmark">

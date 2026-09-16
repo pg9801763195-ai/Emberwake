@@ -1,58 +1,32 @@
-import Image from "next/image";
-import { GateForm } from "@/components/gate-form";
+"use client";
+
+import React, { useState } from "react";
+import { HeroSection } from "@/components/hero-section";
 import { AboutSection } from "@/components/about/about-section";
+import { GateModal } from "@/components/gate-modal";
 
 export default function Home() {
+  const [showGateModal, setShowGateModal] = useState(false);
+
+  const handleOpenGate = () => {
+    setShowGateModal(true);
+  };
+
   return (
     <>
       <a className="skip-link" href="#signup">
         Skip to sign up
       </a>
 
-      <main>
-        <section className="hero" aria-label="Emberwake">
-          <Image
-            className="hero__photo"
-            src="/hero-bg.png"
-            alt=""
-            aria-hidden="true"
-            fill
-            priority
-            sizes="100vw"
-          />
-          <div className="hero__glow" aria-hidden="true" />
-          <div className="hero__fog hero__fog--a" aria-hidden="true" />
-          <div className="hero__fog hero__fog--b" aria-hidden="true" />
-          <div className="hero__scrim-h" aria-hidden="true" />
-          <div className="hero__scrim-v" aria-hidden="true" />
+      <main className="bg-[#0e0c0a] text-[#e6dcc8] min-h-screen">
+        {/* Full-Screen Master 3D Hero Section */}
+        <HeroSection onAwakenClick={handleOpenGate} />
 
-          <div className="hero__row">
-            <div className="hero__copy">
-              <p className="eyebrow">A habit tracker for the unyielding</p>
-              <h1 className="hero__title">Emberwake</h1>
-              <div className="rule-sigil" aria-hidden="true">
-                <span />
-                <svg width="11" height="11">
-                  <use href="#i-sigil" />
-                </svg>
-                <span />
-              </div>
-              <p className="hero__lore">Every habit is a battle. Every day, a bonfire.</p>
-              <div className="hero__actions">
-                <a className="btn btn--primary" href="#signup">
-                  Begin the Journey
-                </a>
-                <a className="btn btn--ghost" href="#signup">
-                  Awaken
-                </a>
-              </div>
-            </div>
+        {/* 6-Stage Cinematic Dark Fantasy Story Journey */}
+        <AboutSection onAwakenClick={handleOpenGate} />
 
-            <GateForm />
-          </div>
-        </section>
-
-        <AboutSection />
+        {/* Global Gate Modal */}
+        <GateModal isOpen={showGateModal} onClose={() => setShowGateModal(false)} />
       </main>
     </>
   );

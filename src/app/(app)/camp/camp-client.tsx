@@ -7,6 +7,7 @@ import { useGameActions, useGameState } from "@/lib/game/game-context";
 import { useHudLayout } from "@/lib/ui/hud-layout-context";
 import type { Attribute, QuestType } from "@/lib/game/types";
 import { ForgeQuestModal } from "@/components/forge-quest-modal";
+import { TutorialGuide } from "@/components/tutorial-guide";
 import { QuestCard } from "./quest-card";
 import { HudTop } from "./hud-top";
 import { HudRail } from "./hud-rail";
@@ -73,6 +74,9 @@ export function CampClient() {
             </div>
           )}
 
+          {/* Interactive Tutorial Guide for Beginners and Guests */}
+          <TutorialGuide onForgeClick={() => setForgeOpen(true)} />
+
           <div className={styles.grid}>
             <section aria-label="Quest Log" className={styles.questLog}>
               <div className={styles.questLogHead}>
@@ -136,7 +140,21 @@ export function CampClient() {
                   <QuestCard key={q.id} quest={q} fx={!!state.fx[q.id]} float={state.floats[q.id] ?? null} />
                 ))}
                 {filtered.length === 0 && (
-                  <p className={styles.emptyLog}>The quest log lies empty. The world waits.</p>
+                  <div className="py-12 px-6 border border-dashed border-[#3e3223] rounded-sm text-center bg-[#100c09]/60 flex flex-col items-center">
+                    <span className="text-3xl mb-2 text-amber-500/80">⚔</span>
+                    <h3 className="font-serif text-[#f6ecd2] text-base mb-1">Your Quest Log is Pristine</h3>
+                    <p className="text-xs text-[#a39787] max-w-sm mb-4 font-serif">
+                      No {tab}s forged yet. Forge your real habits, routines, or tasks to begin building your power.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setForgeOpen(true)}
+                      className="px-5 py-2 bg-[#22170f] hover:bg-[#2f1f13] border border-[#c9aa71]/70 hover:border-[#e8d3a0] text-[#e8d3a0] font-serif text-xs uppercase tracking-wider rounded-sm transition-all shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                      <span>+</span>
+                      <span>Forge a {tab === "vigil" ? "Vigil" : tab === "oath" ? "Oath" : "Bounty"}</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </section>

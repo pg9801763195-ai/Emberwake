@@ -1,28 +1,23 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useReducer, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import type { Attribute, GameState, Quest } from "./types";
 import { BASE_RUNES, levelFor } from "./constants";
 import { SAMPLE_QUESTS } from "./sample-data";
 
 /**
- * Client-side game state — stands in for the real backend until auth,
- * the quest API, and the day-rollover job exist (see docs/design-spec.md
- * section 3 and 9). Every rule here (rune math, leveling, streak
- * multiplier, Fallen) matches that spec and the design handoff exactly,
- * so swapping this provider for real API calls later shouldn't change
- * how anything feels — only where the numbers come from.
+ * Clean baseline state for fresh souls / new visitors:
+ * 0 runes, Level 1 attributes, 0 streak, full health and flasks.
  */
-
 const INITIAL_STATE: GameState = {
-  held: 1284,
-  lifetime: 4200,
-  displayRunes: 1284,
-  health: 41,
-  focus: 18,
-  flasks: 2,
-  streak: 12,
-  points: 1,
+  held: 0,
+  lifetime: 0,
+  displayRunes: 0,
+  health: 50,
+  focus: 0,
+  flasks: 3,
+  streak: 0,
+  points: 0,
   cache: 0,
   ascendLevel: 0,
   fallen: false,
@@ -30,11 +25,11 @@ const INITIAL_STATE: GameState = {
   shake: 0,
   announce: "",
   attrs: {
-    Vigor: { lvl: 7, pct: 62 },
-    Mind: { lvl: 9, pct: 38 },
-    Endurance: { lvl: 5, pct: 74 },
-    Strength: { lvl: 6, pct: 21 },
-    Dexterity: { lvl: 4, pct: 55 },
+    Vigor: { lvl: 1, pct: 0 },
+    Mind: { lvl: 1, pct: 0 },
+    Endurance: { lvl: 1, pct: 0 },
+    Strength: { lvl: 1, pct: 0 },
+    Dexterity: { lvl: 1, pct: 0 },
   },
   quests: SAMPLE_QUESTS,
   fx: {},
@@ -42,6 +37,7 @@ const INITIAL_STATE: GameState = {
 };
 
 type Action =
+  | { type: "LOAD_SAVED"; state: GameState }
   | { type: "START_COMPLETE"; id: string; runes: number; attr: Attribute }
   | { type: "FINISH_COMPLETE"; id: string }
   | { type: "MARK_STRONG"; id: string }
@@ -52,15 +48,23 @@ type Action =
   | { type: "FALLEN" }
   | { type: "RISE_AGAIN" }
   | { type: "SPEND"; amount: number; label: string }
-  | { type: "ALLOCATE" }
+  | { type: "ALLOCATE"; attr?: Attribute }
   | { type: "SET_DISPLAY_RUNES"; value: number }
   | { type: "FORGE_QUEST"; quest: Quest };
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
+    case "LOAD_SAVED":
+      return {
+        ...action.state,
+        fx: {},
+        floats: {},
+        displayRunes: action.state.held,
+      };
+
     case "START_COMPLETE": {
       const a = state.attrs[action.attr];
-      let pct = a.pct + 14;
+      let pct = a.pct + 25;
       let lvl = a.lvl;
       if (pct >= 100) {
         pct -= 100;
@@ -73,9 +77,10 @@ function reducer(state: GameState, action: Action): GameState {
         shake: state.shake + 1,
         held: state.held + action.runes,
         lifetime: state.lifetime + action.runes,
+        streak: state.streak === 0 ? 1 : state.streak,
         attrs: { ...state.attrs, [action.attr]: { lvl, pct } },
         cache: 0,
-        health: Math.min(50, state.health + 1),
+        health: Math.min(50, state.health + 2),
         focus: Math.min(30, state.focus + 2),
         announce: `Quest complete. ${action.runes} runes earned. ${action.attr} increased.`,
       };
@@ -150,7 +155,6 @@ export interface GameActions {
   dismissAscend: () => void;
   riseAgain: () => void;
   forgeQuest: (quest: Omit<Quest, "id" | "streak" | "done" | "meta">) => void;
-  /** Moments screen: replays the takeover without touching real progress. */
   previewAscension: (level: number) => void;
   previewFallen: () => void;
 }
@@ -158,9 +162,43 @@ export interface GameActions {
 const GameStateContext = createContext<GameState | null>(null);
 const GameActionsContext = createContext<GameActions | null>(null);
 
+const STORAGE_KEY = "emberwake_ashen_soul_v1";
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const isLoaded = useRef(false);
+
+  // Load user saved progress on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed.held === "number") {
+            dispatch({ type: "LOAD_SAVED", state: parsed });
+          }
+        }
+      } catch (err) {
+        console.warn("Could not read local storage state:", err);
+      }
+      isLoaded.current = true;
+    }
+  }, []);
+
+  // Save progress changes
+  useEffect(() => {
+    if (isLoaded.current && typeof window !== "undefined") {
+      try {
+        const { fx, floats, announce, ...persisted } = state;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+      } catch (err) {
+        console.warn("Could not save state to local storage:", err);
+      }
+    }
+  }, [state]);
+
   const later = useCallback((fn: () => void, ms: number) => {
     timers.current.push(setTimeout(fn, ms));
   }, []);
@@ -190,10 +228,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const runes = Math.round(BASE_RUNES[quest.diff] * mult * (1 + Math.random() * 0.15));
       const beforeLevel = levelFor(state.lifetime).level;
       const afterLevel = levelFor(state.lifetime + runes).level;
-      const heldAfter = state.held + runes;
+      const fromHeld = state.held;
+      const heldAfter = fromHeld + runes;
 
       dispatch({ type: "START_COMPLETE", id, runes, attr: quest.attr });
-      rollRunesTo(state.held, heldAfter);
+      rollRunesTo(fromHeld, heldAfter);
       later(() => dispatch({ type: "FINISH_COMPLETE", id }), calm ? 160 : 520);
       later(() => dispatch({ type: "CLEAR_FLOAT", id }), 1000);
       if (afterLevel > beforeLevel) {

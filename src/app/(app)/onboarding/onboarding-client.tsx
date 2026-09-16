@@ -4,13 +4,33 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ATTRIBUTES, BASE_RUNES } from "@/lib/game/constants";
 import { CLASS_DEFS, FIRST_STEPS_CHECKLIST, STARTER_QUESTS } from "@/lib/game/sample-data";
+import { useGameActions } from "@/lib/game/game-context";
+import type { Attribute, QuestType } from "@/lib/game/types";
 import { ClassEmblem } from "./class-emblem";
 import styles from "./onboarding.module.css";
 
 export function OnboardingClient() {
   const router = useRouter();
-  const [cls, setCls] = useState(4); // Sentinel, matching the handoff's default
+  const { forgeQuest } = useGameActions();
+  const [cls, setCls] = useState(0); // Knight default
   const [picks, setPicks] = useState<boolean[]>([true, true, false, true, false, false]);
+
+  const handleEnterCamp = () => {
+    // Add selected starter oaths to user's real quest log
+    STARTER_QUESTS.forEach((q, i) => {
+      if (picks[i]) {
+        forgeQuest({
+          type: q.kind.toLowerCase() as QuestType,
+          title: q.title,
+          attr: q.attr as Attribute,
+          diff: q.diff,
+          notes: "Sworn during First Steps.",
+        });
+      }
+    });
+
+    router.push("/camp");
+  };
 
   return (
     <main className={`${styles.main} fx-fadein`}>
@@ -18,6 +38,7 @@ export function OnboardingClient() {
       <h1 className={styles.heading}>Choose Your Path</h1>
       <p className={styles.lede}>Five began this road. None finished it. Take up what they left behind.</p>
 
+      {/* 1. Character Class Grid */}
       <div className={styles.classGrid} role="group" aria-label="Choose a class">
         {CLASS_DEFS.map((c, i) => {
           const meta = ATTRIBUTES[c.attr];
@@ -49,11 +70,12 @@ export function OnboardingClient() {
         })}
       </div>
 
+      {/* 2. Swear Oaths & Checklist */}
       <div className={styles.detailGrid}>
         <section className={styles.oathsPanel}>
           <p className={styles.panelEyebrow}>II of III</p>
           <h2 className={styles.panelHeading}>Swear Your First Oaths</h2>
-          <p className={styles.panelSub}>Pick a few. You may rewrite every word of them later.</p>
+          <p className={styles.panelSub}>Select your starting resolves. They will be forged directly into your Quest Log.</p>
           <div className={styles.starterList}>
             {STARTER_QUESTS.map((q, i) => {
               const on = picks[i];
@@ -84,8 +106,8 @@ export function OnboardingClient() {
               );
             })}
           </div>
-          <button type="button" className={styles.enterButton} onClick={() => router.push("/camp")}>
-            Enter the Camp
+          <button type="button" className={styles.enterButton} onClick={handleEnterCamp}>
+            Enter the Camp & Forge Oaths
           </button>
         </section>
 
@@ -110,7 +132,7 @@ export function OnboardingClient() {
               <span>Reward</span>
             </div>
             <p className={styles.rewardText}>
-              100 runes and the relic <em>First Light</em>.
+              100 runes and the relic <em>First Light</em> upon completing all steps.
             </p>
           </div>
         </section>
