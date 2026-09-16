@@ -7,6 +7,7 @@ import { uniqueUsernameFrom } from "@/lib/auth-helpers";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
+  trustHost: true,
   pages: {
     // The Gate itself carries the sign-up/awaken modal — no separate page.
     signIn: "/",
