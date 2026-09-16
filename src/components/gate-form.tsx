@@ -123,11 +123,13 @@ export function GateForm() {
         setMode("login");
       }
       if (authErr) {
-        setNotice(
-          authErr === "OAuthSignin" || authErr === "OAuthCallback"
-            ? "Google OAuth verification failed or is not yet configured in .env."
-            : `Authentication notice: ${authErr}`
-        );
+        if (authErr === "Configuration") {
+          setNotice("Google Sign-In requires GOOGLE_CLIENT_ID in your settings. You can Swear an Oath with email & password above, or click 'Enter as Guest' below to enter immediately!");
+        } else if (authErr === "OAuthSignin" || authErr === "OAuthCallback") {
+          setNotice("Google OAuth verification failed or is not configured yet. Swear an oath above or enter as Guest!");
+        } else {
+          setNotice(`Authentication notice: ${authErr}`);
+        }
       }
     }
   }, []);
