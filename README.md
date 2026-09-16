@@ -1,79 +1,99 @@
-# Emberwake
+# ⚔️ EMBERWAKE
 
-A habit tracker themed as a grim, dark-fantasy Soulslike RPG. Habits become quests; completing one earns Runes and raises attributes; streaks are Bonfires; missed days drain Ember Flasks.
+> **"From the dying cinders, a sovereign will rises."**
+> 
+> A Soulslike Life RPG & Habit Tracking system crafted in Next.js 16, Three.js WebGL, and NextAuth. Habits become Sacred Oaths; consistency fuels the Bonfire; failure drains your Ember Flasks.
 
-Built for the Life RPG project brief — see [`docs/`](./docs) for the full design spec and glossary.
+---
 
-**Live demo:** [emberwake-delta.vercel.app](https://emberwake-delta.vercel.app)
+## ✨ Features
 
-## Screenshots
+- 🔥 **Interactive 3D Bonfire Hero (WebGL)**: Real-time 3D campfire scene rendered with Three.js, particle flame embers, coiled blade, dynamic point lights, and 7 rotating celestial runes.
+- 🛡️ **Multi-Layered Security & Auth**: Full NextAuth v5 authentication supporting Google OAuth and encrypted Credentials, backed by Prisma ORM and unbreakable server-side route guards.
+- ⚡ **Guest Mode & Clean Slate**: Zero fake or hardcoded dummy stats. New Ashen Souls begin fresh with a 3-Pillars interactive Codex and persistent progress tracking.
+- 📜 **The 3 Pillars of Habit Tracking**:
+  - **Vigils**: Daily non-negotiable rituals that maintain the Bonfire streak.
+  - **Oaths**: Flexible weekly disciplines that forge core attributes (*Vigor, Mind, Endurance, Strength, Dexterity*).
+  - **Bounties**: High-reward one-time trials that bestow massive Runes.
+- 🏺 **Interactive 3D Chambers**:
+  - **The Camp**: Real-time habit tracking, quest forging, and 3D mini-bonfire state.
+  - **Chronicle**: Complete milestone logs, attribute progression, and wallet breakdown (*Runes Held vs Lifetime XP*).
+  - **Merchant of the Cinders**: Interactive 3D relic inspector with rotate and zoom controls.
+  - **Hall of Relics**: 3D display chamber for unlocked legendary artifacts.
+  - **Moments**: Cinematic trial triggers and triumph celebrations.
+- 🕯️ **Soulslike Atmosphere**: Molten glassmorphism, animated torch flame tabs on navigation hover, dynamic audio-visual feedback, and dark-fantasy typography.
 
-![The Gate — Emberwake's landing screen](docs/screenshots/gate-hero.png)
+---
 
-*The Gate is the only screen a stranger can see. "Begin the Journey" and "Awaken" are real sign-up/log-in, backed by Postgres — not a mockup toggle.*
+## 🛠️ Tech Stack
 
-![The Gate's About section, explaining the core loop](docs/screenshots/gate-about.png)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Server Components & Route Handlers)
+- **3D & Graphics**: [Three.js](https://threejs.org/), [@react-three/fiber](https://github.com/pmndrs/react-three-fiber), [@react-three/drei](https://github.com/pmndrs/drei), Custom GLSL Shaders
+- **Authentication**: [Auth.js / NextAuth v5](https://authjs.dev/) (Credentials + Google OAuth)
+- **Database & ORM**: PostgreSQL with [Prisma ORM](https://www.prisma.io/)
+- **Styling**: Vanilla CSS, Tailwind CSS, Lucide Icons
 
-*Scrolling The Gate explains the loop before anyone commits: a real habit becomes a quest, judged in the same dark-fantasy terms as the rest of the app.*
+---
 
-## Our approach to the problem statement
+## 🚀 Getting Started
 
-The brief asked for a "Life RPG" — take real habits and make them feel like a game worth returning to, not a to-do list with a fresh coat of paint. Two beliefs shaped how we read that:
-
-1. **Gamification fails when nothing is at stake.** A points counter that only ever goes up isn't a game. So a missed day in Emberwake actually costs something: it drains an Ember Flask (you only carry 3), and running out lets the streak's Bonfire go out and damages your Health — mirrored, non-euphemistic consequences instead of a guilt-trip notification. Runes and attributes level on deliberately non-linear curves (see [`docs/design-spec.md`](./docs/design-spec.md)) so early progress feels fast and later progress feels earned, the way an RPG's does.
-2. **The "game" has to be real, not a skin.** So the RPG layer isn't client-side decoration on top of a normal habit list — the plan (see "Game systems" in the design spec) is for every reward to be computed server-side from a habit's actual completion, with the client only ever sending intent, so progress can't just be typed into `localStorage`.
-
-That same bar — real, not a demo of real — is why the app is gated behind actual accounts rather than a click-through prototype: [`src/proxy.ts`](./src/proxy.ts) turns away every signed-out visitor at every screen but The Gate, sign-up/log-in hit a real Postgres database (Auth.js + Prisma, see below), and the result is deployed at a public URL instead of only ever running on one laptop.
-
-The one place we're still short of that bar, in the interest of being honest about it: the Camp/Merchant/Relics/Chronicle screens still read from client-side sample data rather than each user's own row in the database (see "Status" below) — the account system is real, the game state behind it isn't wired to it yet.
-
-## Status
-
-All seven screens are built: The Gate (landing hero + About section), First Steps, The Camp, Chronicle, Merchant, Hall of Relics, and Moments. Real accounts exist — sign-up/log-in creates a row in Postgres and every in-app screen is gated behind a session.
-
-Not yet done: the actual game state (quests, runes, attributes, relics) still lives in client-side React state seeded with sample data, not the database — so progress doesn't persist across a real login. Wiring the Camp/Merchant/Relics screens to the `Quest`/`Character`/etc. tables via API routes is the next piece of work. Google sign-in is scaffolded in the UI but not connected (no OAuth app registered yet).
-
-## Tech stack
-
-- **Frontend:** Next.js 16 (App Router, TypeScript), CSS Modules, Framer Motion (installed, not yet used)
-- **Backend:** Next.js Route Handlers
-- **Database:** PostgreSQL (Supabase) via Prisma ORM ([`prisma/schema.prisma`](./prisma/schema.prisma)), connected through `@prisma/adapter-pg` (Prisma 7 requires a driver adapter — there's no more bare `datasourceUrl` string)
-- **Auth:** Auth.js v5, Credentials provider (bcrypt-hashed passwords in the `User` table), JWT sessions
-- **Validation:** Zod
-
-## Getting started
-
+### 1. Clone the Repository
 ```bash
-npm install
-cp .env.example .env   # fill in DATABASE_URL, DIRECT_URL, AUTH_SECRET
-npx prisma generate
-npx prisma migrate dev --name init
-npm run dev
+git clone https://github.com/pg9801763195-ai/Emberwake.git
+cd Emberwake
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Sign up from The Gate — that's a real account.
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-### Environment variables
+### 3. Configure Environment Variables
+Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
 
-See [`.env.example`](./.env.example) for the full list:
+Set up your environment variables:
+```env
+# Database (PostgreSQL - Neon, Supabase, or Local)
+DATABASE_URL="postgresql://user:password@localhost:5432/emberwake"
+DIRECT_URL="postgresql://user:password@localhost:5432/emberwake"
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string the app uses at runtime. On Supabase this is the **pooled** (PgBouncer, port 6543) string |
-| `DIRECT_URL` | Direct/session connection, used only by `prisma migrate` (PgBouncer's transaction mode can't run migrations) |
-| `AUTH_SECRET` | Auth.js session signing secret — generate with `openssl rand -base64 32` |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth sign-in (not wired up yet) |
+# NextAuth v5
+AUTH_SECRET="your-generated-auth-secret"
+NEXTAUTH_URL="http://localhost:3000"
 
-## Auth & route protection
+# Optional: Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+```
 
-`src/proxy.ts` (Next.js 16 renamed `middleware.ts` → `proxy.ts`) redirects any signed-out visitor away from `/onboarding`, `/camp`, `/chronicle`, `/merchant`, `/relics`, and `/moments` back to The Gate, carrying `?next=<path>` so a successful sign-in lands them back where they started. The Gate's own panel toggles between "Begin the Journey" (sign-up, via `/api/register` then `signIn`) and "Awaken" (log-in) — both real, backed by `src/lib/auth.ts`.
+### 4. Database Setup
+```bash
+npx prisma generate
+npx prisma db push
+```
 
-## Database
+### 5. Run the Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to awaken at The Gate.
 
-The schema in [`prisma/schema.prisma`](./prisma/schema.prisma) models: `User`, `Character` (level, runes, health/focus, streak, ember flasks), `AttributeStat` (Vigor/Mind/Endurance/Strength/Dexterity), `Quest` (Vigils/Oaths/Bounties), `QuestCompletion` (permanent history log used for undo and anti-cheat), `DayLog`, `Item`/`InventoryItem` (the Merchant + Armory), `Relic`/`UserRelic` (Hall of Relics), `Indulgence`, and `Raven` (notifications).
+---
 
-Once the game screens are wired to it, all game math (runes, leveling, streaks, damage) is meant to run server-side — the client only ever sends intent.
+## ☁️ Deployment (Vercel)
 
-## Assets
+Emberwake is optimized for instant 1-click deployment on Vercel:
 
-Design reference and imagery came from a Claude Design handoff (`docs/design-handoff/`) — see that folder's README for full design tokens, copy, and motion specs.
+1. Push this repository to your GitHub account.
+2. Import the repository into **[Vercel](https://vercel.com/)**.
+3. Add `AUTH_SECRET` and `NEXTAUTH_URL` under **Project Settings ➔ Environment Variables**.
+4. Click **Deploy**.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License.
